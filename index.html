@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico de Batería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --bg: #12161C;
+    --panel: #1B212A;
+    --panel-2: #222933;
+    --line: #2C3440;
+    --text: #EAEDF1;
+    --text-dim: #8B94A3;
+    --accent: #35E7B7;
+    --accent-dim: #1E5F4E;
+    --warn: #F5A623;
+    --bad: #FF5C6A;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: radial-gradient(ellipse at top, #171D25 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: var(--body);
+    min-height:100vh;
+    padding: 32px 16px 80px;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+
+  /* Header */
+  header{display:flex;align-items:center;gap:18px;margin-bottom:28px;}
+  .cell-icon{width:52px;height:52px;flex-shrink:0;}
+  h1{font-family:var(--display);font-size:26px;font-weight:600;margin:0;letter-spacing:-0.01em;}
+  header p{margin:2px 0 0;color:var(--text-dim);font-size:13.5px;}
+
+  /* Cards */
+  .card{
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-family:var(--display);
+    font-size:15px;
+    font-weight:600;
+    margin:0 0 4px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .card h2 .num{
+    background:var(--accent);
+    color:#0A2A22;
+    width:22px;height:22px;border-radius:6px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;
+  }
+  .card .hint{color:var(--text-dim);font-size:12.5px;margin:0 0 16px;}
+
+  /* Store info */
+  .store-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .store-grid .field label,.field label{
+    display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--text-dim);margin-bottom:5px;font-weight:600;
+  }
+  .store-grid input{
+    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
+    color:var(--text);font-family:var(--mono);font-size:13.5px;padding:4px 0;
+  }
+  .store-grid input:focus{outline:none;border-bottom-color:var(--accent);}
+
+  /* Upload */
+  .dropzone{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:26px 18px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .dropzone.drag{border-color:var(--accent);background:rgba(53,231,183,0.05);}
+  .dropzone svg{width:30px;height:30px;color:var(--text-dim);margin-bottom:8px;}
+  .dropzone .main{font-size:14px;font-weight:500;}
+  .dropzone .sub{font-size:12px;color:var(--text-dim);margin-top:3px;}
+  #fileInput{display:none;}
+  .file-status{
+    margin-top:14px;display:none;align-items:center;gap:10px;
+    background:var(--panel-2);border-radius:10px;padding:10px 14px;font-size:13px;
+  }
+  .file-status.show{display:flex;}
+  .file-status .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .file-status .dot.err{background:var(--bad);}
+  .file-status .name{flex:1;color:var(--text-dim);font-family:var(--mono);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .scale-toggle{margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .scale-label{font-size:12px;color:var(--text-dim);}
+  .scale-pill{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text-dim);
+    border-radius:999px;padding:5px 13px;font-family:var(--mono);font-size:12px;cursor:pointer;
+  }
+  .scale-pill.active{background:var(--accent);border-color:var(--accent);color:#0A2A22;font-weight:700;}
+
+  /* Vehicle form */
+  .veh-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .field input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);font-family:var(--mono);font-size:13.5px;padding:10px 12px;
+  }
+  .field input:focus{outline:none;border-color:var(--accent);}
+  .field input::placeholder{color:#535D6B;}
+
+  /* Buttons */
+  .btn{
+    width:100%;border:none;border-radius:10px;padding:13px;font-family:var(--display);
+    font-size:14.5px;font-weight:600;cursor:pointer;transition:filter .15s, transform .1s;
+  }
+  .btn:active{transform:scale(0.99);}
+  .btn-primary{background:var(--accent);color:#0A2A22;margin-top:18px;}
+  .btn-primary:disabled{background:#2C3440;color:#5A6472;cursor:not-allowed;}
+  .btn-primary:not(:disabled):hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text-dim);margin-top:10px;}
+  .btn-ghost:hover{border-color:var(--text-dim);color:var(--text);}
+  .btn-download{background:var(--accent);color:#0A2A22;margin-top:6px;}
+
+  /* Report — light theme (independent of the app's dark UI, since this is what gets exported) */
+  #report{
+    --rbg: #FFFFFF;
+    --rpanel: #F3F5F8;
+    --rline: #E3E7EE;
+    --rtext: #171B21;
+    --rtext-dim: #6B7280;
+    --rgood: #0F9D74;
+    --rwarn: #B7791F;
+    --rbad: #DC2626;
+    background: var(--rbg);
+    color: var(--rtext);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .report-header{text-align:center;padding:6px 0 18px;border-bottom:1px solid var(--rline);margin-bottom:20px;}
+  .report-header h2{font-family:var(--display);font-size:19px;letter-spacing:.02em;margin:0;color:var(--rtext);}
+  .section-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--rgood);
+    font-weight:700;margin:0 0 12px;
+  }
+  .kv-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+  .kv{}
+  .kv .k{font-size:11px;color:var(--rtext-dim);margin-bottom:3px;}
+  .kv .v{font-family:var(--mono);font-size:14.5px;color:var(--rtext);}
+  hr.div{border:none;border-top:1px solid var(--rline);margin:20px 0;}
+
+  /* Gauge */
+  .gauge-wrap{display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap;margin-bottom:6px;}
+  .gauge{position:relative;width:200px;height:120px;}
+  .gauge svg{width:100%;height:100%;}
+  .gauge-value{
+    position:absolute;bottom:6px;left:0;right:0;text-align:center;
+  }
+  .gauge-value .num{font-family:var(--display);font-size:32px;font-weight:700;color:var(--rtext);}
+  .gauge-value .lbl{font-size:11px;color:var(--rtext-dim);text-transform:uppercase;letter-spacing:.06em;}
+  .soc-stat{text-align:center;}
+  .soc-stat .num{font-family:var(--display);font-size:26px;font-weight:700;color:var(--rtext);}
+  .soc-stat .lbl{font-size:11px;color:var(--rtext-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+  .info-note{
+    background:var(--rpanel);border:1px solid var(--rline);border-radius:10px;
+    padding:12px 16px;margin:14px 0 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  }
+  .info-note .info-item{font-size:11.5px;color:var(--rtext-dim);line-height:1.5;}
+  .info-note .info-item strong{color:var(--rtext);}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}
+  .stat-box{background:var(--rpanel);border:1px solid var(--rline);border-radius:10px;padding:14px 16px;}
+  .stat-box .k{font-size:11px;color:var(--rtext-dim);margin-bottom:4px;}
+  .stat-box .v{font-family:var(--mono);font-size:16px;color:var(--rtext);}
+
+  .estado-banner{
+    border-radius:12px;padding:18px;text-align:center;margin-top:8px;
+  }
+  .estado-banner.good{background:#E7F7F1;border:1px solid #B7E8D4;}
+  .estado-banner.warn{background:#FDF3E3;border:1px solid #F0D89B;}
+  .estado-banner.bad{background:#FDEAEA;border:1px solid #F5BFBF;}
+  .estado-banner .title{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.02em;}
+  .estado-banner.good .title{color:var(--rgood);}
+  .estado-banner.warn .title{color:var(--rwarn);}
+  .estado-banner.bad .title{color:var(--rbad);}
+  .estado-banner .msg{font-size:12.5px;color:var(--rtext-dim);margin-top:5px;}
+
+  .volt-grid{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+  }
+  .volt-cell{
+    background:var(--rpanel);border:1px solid var(--rline);border-radius:6px;padding:6px 8px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:10.5px;color:var(--rtext);
+  }
+  .volt-cell .n{color:var(--rtext-dim);}
+  .volt-cell .val{font-weight:600;}
+  .volt-cell.vmax{background:#FDEAEA;border:1px solid #F3B9B9;}
+  .volt-cell.vmax .val{color:var(--rbad);}
+  .volt-cell.vmin{background:#E7F7F1;border:1px solid #A9E3CB;}
+  .volt-cell.vmin .val{color:var(--rgood);}
+
+  @media (max-width:520px){
+    .store-grid,.veh-grid,.kv-row,.stat-grid{grid-template-columns:1fr 1fr;}
+    .volt-grid{grid-template-columns:repeat(3,1fr);}
+    .info-note{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="cell-icon" viewBox="0 0 52 52" fill="none">
+      <rect x="6" y="14" width="36" height="26" rx="4" stroke="#35E7B7" stroke-width="2"/>
+      <rect x="43" y="22" width="4" height="10" rx="1.5" fill="#35E7B7"/>
+      <rect id="chargeFill" x="9" y="17" width="0" height="20" rx="2" fill="#35E7B7">
+        <animate attributeName="width" values="0;30;0" dur="4s" repeatCount="indefinite"/>
+      </rect>
+    </svg>
+    <div>
+      <h1>Diagnóstico de Batería</h1>
+      <p>Cargue el reporte generado por el equipo <strong>LAUNCH</strong> y genere el informe para el cliente.</p>
+    </div>
+  </header>
+
+  <!-- Store info -->
+  <div class="card">
+    <h2>Información de la tienda</h2>
+    <p class="hint">Estos datos aparecerán en el encabezado del reporte final.</p>
+    <div class="store-grid">
+      <div class="field"><label>Nombre</label><input id="storeName" value="Trochez"></div>
+      <div class="field"><label>Teléfono</label><input id="storePhone" value="+506 8794-4104"></div>
+      <div class="field"><label>Dirección</label><input id="storeAddress" value="San José, Costa Rica"></div>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <h2><span class="num">1</span>Cargar reporte PDF</h2>
+    <p class="hint">Reporte de diagnóstico exportado por el escáner LAUNCH.</p>
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      <div class="main">Haga clic o arrastre el PDF aquí</div>
+      <div class="sub">ReporteBateriaVehiculo.pdf</div>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf">
+    <div class="file-status" id="fileStatus">
+      <div class="dot" id="fileDot"></div>
+      <div class="name" id="fileName"></div>
+    </div>
+    <div class="scale-toggle" id="scaleToggle" style="display:none;">
+      <span class="scale-label">Escala de SOH detectada:</span>
+      <button type="button" class="scale-pill" data-scale="10">1–10</button>
+      <button type="button" class="scale-pill" data-scale="100">1–100</button>
+    </div>
+  </div>
+
+  <!-- Vehicle info -->
+  <div class="card">
+    <h2><span class="num">2</span>Información del vehículo</h2>
+    <p class="hint">Complete los siguientes datos antes de generar el reporte.</p>
+    <div class="veh-grid">
+      <div class="field"><label>Placa / Nombre</label><input id="vehPlaca" placeholder="Ej. ABC-123"></div>
+      <div class="field"><label>Número de Chasis (VIN)</label><input id="vehVin" placeholder="Ej. 1HGBH41JXMN109186"></div>
+      <div class="field"><label>Kilometraje</label><input id="vehKm" placeholder="Ej. 85430" inputmode="numeric"></div>
+    </div>
+    <button class="btn btn-primary" id="genBtn" disabled>Generar reporte</button>
+    <button class="btn btn-ghost" id="blankBtn">Generar reporte en blanco</button>
+  </div>
+
+  <!-- Report -->
+  <div id="reportCard" class="card" style="display:none;">
+    <div id="report">
+      <div class="report-header"><h2>REPORTE DE SALUD DE BATERÍA</h2></div>
+
+      <p class="section-label">Centro de servicio</p>
+      <div class="kv-row">
+        <div class="kv"><div class="k">Nombre</div><div class="v" id="outStoreName"></div></div>
+        <div class="kv"><div class="k">Teléfono</div><div class="v" id="outStorePhone"></div></div>
+        <div class="kv"><div class="k">Dirección</div><div class="v" id="outStoreAddress"></div></div>
+      </div>
+
+      <p class="section-label">Información del vehículo</p>
+      <div class="kv-row">
+        <div class="kv"><div class="k">Placa / Nombre</div><div class="v" id="outPlaca"></div></div>
+        <div class="kv"><div class="k">VIN</div><div class="v" id="outVin"></div></div>
+        <div class="kv"><div class="k">Kilometraje</div><div class="v" id="outKm"></div></div>
+      </div>
+
+      <hr class="div">
+
+      <p class="section-label">Diagnóstico de batería</p>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg viewBox="0 0 200 120">
+            <path d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="#E3E7EE" stroke-width="14" stroke-linecap="round"/>
+            <path id="gaugeArc" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="#35E7B7" stroke-width="14" stroke-linecap="round"/>
+          </svg>
+          <div class="gauge-value"><div class="num" id="outSoh">—</div><div class="lbl">SOH</div></div>
+        </div>
+        <div class="soc-stat"><div class="num" id="outSoc">—</div><div class="lbl">SOC</div></div>
+      </div>
+      <p class="soh-raw" id="outSohRaw" style="text-align:center;color:var(--rtext-dim);font-size:11.5px;margin:0 0 6px;"></p>
+
+      <div class="info-note">
+        <div class="info-item"><strong>SOH</strong> — Estado de Salud: compara la capacidad actual de la batería con la que tenía siendo nueva. Un valor más alto indica una batería en mejor condición.</div>
+        <div class="info-item"><strong>SOC</strong> — Estado de Carga: indica cuánta energía tiene disponible la batería en este momento, como el indicador de combustible de un vehículo.</div>
+      </div>
+
+      <div class="kv-row" style="margin-top:6px;">
+        <div class="kv"><div class="k">Voltaje total</div><div class="v" id="outVoltage"></div></div>
+        <div class="kv"><div class="k">Fecha de prueba</div><div class="v" id="outDate"></div></div>
+        <div class="kv"><div class="k">Versión de software</div><div class="v" id="outSw"></div></div>
+      </div>
+
+      <hr class="div">
+
+      <p class="section-label">Capacidad de batería</p>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="k">Capacidad inicial</div><div class="v" id="outCapInit"></div></div>
+        <div class="stat-box"><div class="k">Capacidad actual</div><div class="v" id="outCapCurr"></div></div>
+      </div>
+
+      <div id="cellBalanceSection" style="display:none;">
+        <hr class="div">
+        <p class="section-label">Balance de celdas</p>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="k">Voltaje promedio</div><div class="v" id="outCellAvg"></div></div>
+          <div class="stat-box"><div class="k">Diferencial máx–mín</div><div class="v" id="outCellDelta"></div></div>
+          <div class="stat-box"><div class="k">Voltaje máximo (celda)</div><div class="v" id="outCellMax"></div></div>
+          <div class="stat-box"><div class="k">Voltaje mínimo (celda)</div><div class="v" id="outCellMin"></div></div>
+        </div>
+      </div>
+
+      <div id="voltageTableSection" style="display:none;">
+        <hr class="div">
+        <p class="section-label">Voltaje individual por celda (<span id="voltTableCount"></span>)</p>
+        <div class="volt-grid" id="voltGrid"></div>
+      </div>
+
+      <hr class="div">
+
+      <p class="section-label">Número de serie</p>
+      <div class="kv-row" style="margin-bottom:6px;">
+        <div class="kv" style="grid-column:1/4;"><div class="v" id="outSerial"></div></div>
+      </div>
+
+      <div class="estado-banner" id="estadoBanner">
+        <div class="title" id="estadoTitle">—</div>
+        <div class="msg" id="estadoMsg">—</div>
+      </div>
+    </div>
+
+    <button class="btn btn-download" id="downloadBtn">Descargar Reporte en PDF</button>
+    <button class="btn btn-ghost" id="resetBtn">Nuevo reporte</button>
+  </div>
+
+  <p style="text-align:center;color:#535D6B;font-size:11.5px;margin-top:22px;">
+    Diseñado para reportes del escáner LAUNCH · los datos se procesan localmente en su navegador.
+  </p>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+let parsedData = null;
+
+// ---------- Helpers ----------
+function fmtNum(value, decimals=2){
+  if(value===null||value===undefined||isNaN(value)) return '—';
+  const fixed = Number(value).toFixed(decimals);
+  const parts = fixed.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return decimals>0 ? parts.join(',') : parts[0];
+}
+
+function estadoBateria(percent){
+  if(percent===null) return {label:'NO DISPONIBLE',msg:'No fue posible determinar el estado de la batería.',color:'warn'};
+  if(percent>=80) return {label:'EXCELENTE ESTADO',msg:'La batería mantiene un rendimiento óptimo.',color:'good'};
+  if(percent>=60) return {label:'BUEN ESTADO',msg:'La batería funciona correctamente, sin problemas relevantes.',color:'good'};
+  if(percent>=40) return {label:'ESTADO REGULAR',msg:'El rendimiento ha disminuido. Se recomienda monitoreo periódico.',color:'warn'};
+  return {label:'ESTADO CRÍTICO',msg:'Capacidad muy reducida. Se recomienda evaluación y posible reemplazo.',color:'bad'};
+}
+
+// Note: PDF text extraction interleaves this template's two-column layout,
+// so labels can't be sliced sequentially. Instead we anchor each regex to the
+// short word immediately before its value (which stays adjacent even when the
+// rest of a multi-line label gets pushed elsewhere by the column wrap).
+function regexNum(text, re){
+  const m = text.match(re);
+  return m ? parseFloat(m[1].replace(',','.')) : null;
+}
+function regexStr(text, re){
+  const m = text.match(re);
+  return m ? m[1] : null;
+}
+
+function parseReportText(rawText){
+  const text = rawText.replace(/\s+/g,' ').trim();
+
+  const soc = regexNum(text, /SOC:\s*([\d.,]+)\s*%/i);
+  const soh = regexNum(text, /SOH:\s*([\d.,]+)\s*%/i);
+  const totalVoltage = regexNum(text, /Total voltage:\s*([\d.,]+)\s*V/i);
+  const serial = regexStr(text, /Serie:\s*([A-Za-z0-9]+)/i);
+  const swVersion = regexStr(text, /Vehículo:\s*([A-Za-z0-9.]+)/i);
+
+  // Capacities appear as two "capacity:<value> Ah" fragments in row order: initial, then current.
+  const capMatches = [...text.matchAll(/capacity:\s*([\d.,]+)\s*Ah/gi)];
+  const capInit = capMatches[0] ? parseFloat(capMatches[0][1].replace(/,/g,'')) : null;
+  const capCurr = capMatches[1] ? parseFloat(capMatches[1][1].replace(/,/g,'')) : null;
+
+  // Date: year-month sits right after "Prueba:"; day+time is a distinctive "DD HH:MM:SS" fragment
+  // that ends up detached from it by the neighboring column's wrapped label.
+  let testDate = null;
+  const ym = text.match(/Prueba:\s*(\d{4})-(\d{2})-/i);
+  const dt = text.match(/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if(ym && dt){
+    testDate = `${dt[1]}/${ym[2]}/${ym[1]}, ${dt[2]}:${dt[3]}:${dt[4]}`;
+  }
+
+  const cellAvg = regexNum(text, /Average\s+([\d.,]+)\s*V\s*voltage\s+Battery\s+cell/i);
+  const cellMax = regexNum(text, /Maximum\s+([\d.,]+)\s*V\s*voltage\s+Battery\s+cell/i);
+  const cellMin = regexNum(text, /Minimum\s+([\d.,]+)\s*V\s*voltage\s+Battery\s+cell/i);
+  const cellMaxNo = regexNum(text, /Number of\s+(\d+)\s*the battery cell\s*with the maximum\s*voltage/i);
+  const cellMinNo = regexNum(text, /Number of\s+(\d+)\s*the battery cell\s*with the minimum\s*voltage/i);
+
+  // Individual cell voltage table: needs real line breaks (not the flattened
+  // "text"), since rows are only distinguishable by being on their own line.
+  const voltageTable = [...rawText.matchAll(/^(\d{1,3})\s+([\d.,]+)\s*V\s*$/gm)]
+    .map(m => ({cell: parseInt(m[1],10), voltage: parseFloat(m[2].replace(',','.'))}));
+
+  // SOH is reported on two different scales depending on the equipment/report:
+  // sometimes 0–100 (a true percentage), sometimes 0–10. A raw value at or
+  // below 10 is ambiguous, so we default a guess but let the user confirm/override.
+  const sohScaleGuess = (soh!==null && soh<=10) ? 10 : 100;
+
+  return {serial, testDate, swVersion, soc, soh, totalVoltage, capInit, capCurr,
+          cellAvg, cellMax, cellMin, cellMaxNo, cellMinNo, voltageTable, sohScaleGuess};
+}
+
+// ---------- File handling ----------
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const fileStatus = document.getElementById('fileStatus');
+const fileDot = document.getElementById('fileDot');
+const fileName = document.getElementById('fileName');
+const genBtn = document.getElementById('genBtn');
+
+dropzone.addEventListener('click', ()=>fileInput.click());
+['dragover','dragenter'].forEach(evt=>dropzone.addEventListener(evt, e=>{e.preventDefault();dropzone.classList.add('drag');}));
+['dragleave','drop'].forEach(evt=>dropzone.addEventListener(evt, e=>{e.preventDefault();dropzone.classList.remove('drag');}));
+dropzone.addEventListener('drop', e=>{
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+});
+
+// Reconstructs real lines from pdf.js text items using their y-position, since
+// this template's two-column layout otherwise gets flattened into one stream
+// and the per-line voltage table becomes unparseable.
+function groupLinesFromItems(items){
+  const sorted = items.slice().sort((a,b)=> b.transform[5]-a.transform[5] || a.transform[4]-b.transform[4]);
+  const lines = [];
+  let current = [];
+  let currentY = null;
+  const TOL = 2.5;
+  sorted.forEach(it=>{
+    const y = it.transform[5];
+    if(currentY===null || Math.abs(y-currentY)<TOL){
+      current.push(it);
+      if(currentY===null) currentY = y;
+    } else {
+      lines.push(current);
+      current = [it];
+      currentY = y;
+    }
+  });
+  if(current.length) lines.push(current);
+  return lines.map(line => line.sort((a,b)=>a.transform[4]-b.transform[4]).map(it=>it.str).join(' '));
+}
+
+async function handleFile(file){
+  fileStatus.classList.add('show');
+  fileName.textContent = 'Procesando ' + file.name + '…';
+  fileDot.classList.remove('err');
+  try{
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    let allLines = [];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      allLines = allLines.concat(groupLinesFromItems(content.items));
+    }
+    const fullText = allLines.join('\n');
+    const data = parseReportText(fullText);
+    if(data.soh===null && data.totalVoltage===null){
+      throw new Error('No se reconocieron datos de batería en este PDF.');
+    }
+    parsedData = data;
+    fileName.textContent = file.name + ' — datos extraídos correctamente';
+    setupScaleToggle(data.sohScaleGuess);
+    checkReady();
+  }catch(err){
+    parsedData = null;
+    fileDot.classList.add('err');
+    fileName.textContent = 'Error: ' + err.message;
+    document.getElementById('scaleToggle').style.display='none';
+    checkReady();
+  }
+}
+
+let sohScale = 100;
+function setupScaleToggle(guess){
+  sohScale = guess;
+  const wrap = document.getElementById('scaleToggle');
+  wrap.style.display = 'flex';
+  document.querySelectorAll('.scale-pill').forEach(btn=>{
+    btn.classList.toggle('active', parseInt(btn.dataset.scale,10)===guess);
+  });
+}
+document.querySelectorAll('.scale-pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    sohScale = parseInt(btn.dataset.scale,10);
+    document.querySelectorAll('.scale-pill').forEach(b=>b.classList.toggle('active', b===btn));
+  });
+});
+
+function checkReady(){
+  const placa = document.getElementById('vehPlaca').value.trim();
+  genBtn.disabled = !(parsedData && placa);
+}
+['vehPlaca','vehVin','vehKm'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', checkReady);
+});
+
+// ---------- Generate report ----------
+const BLANK = '________________';
+let isBlankReport = false;
+
+function renderReport(d){
+  document.getElementById('outStoreName').textContent = document.getElementById('storeName').value || '—';
+  document.getElementById('outStorePhone').textContent = document.getElementById('storePhone').value || '—';
+  document.getElementById('outStoreAddress').textContent = document.getElementById('storeAddress').value || '—';
+
+  document.getElementById('outPlaca').textContent = document.getElementById('vehPlaca').value || BLANK;
+  document.getElementById('outVin').textContent = document.getElementById('vehVin').value || BLANK;
+  const km = document.getElementById('vehKm').value.trim();
+  document.getElementById('outKm').textContent = km ? fmtNum(parseFloat(km.replace(/[^\d.]/g,'')),0) + ' km' : BLANK;
+
+  document.getElementById('outSoc').textContent = (d && d.soc!==null) ? fmtNum(d.soc,2)+'%' : BLANK;
+  document.getElementById('outVoltage').textContent = (d && d.totalVoltage!==null) ? fmtNum(d.totalVoltage,3)+' V' : BLANK;
+  document.getElementById('outDate').textContent = (d && d.testDate) ? d.testDate : BLANK;
+  document.getElementById('outSw').textContent = (d && d.swVersion) ? d.swVersion : BLANK;
+  document.getElementById('outCapInit').textContent = (d && d.capInit!==null) ? fmtNum(d.capInit,0)+' Ah' : BLANK;
+  document.getElementById('outCapCurr').textContent = (d && d.capCurr!==null) ? fmtNum(d.capCurr,0)+' Ah' : BLANK;
+  document.getElementById('outSerial').textContent = (d && d.serial) ? d.serial : BLANK;
+
+  // SOH: normalize whichever scale was selected (1–10 or 1–100) to a 0–100 percent for gauge/status.
+  const percent = (d && d.soh!==null) ? (sohScale===10 ? d.soh*10 : d.soh) : null;
+  document.getElementById('outSoh').textContent = percent!==null ? fmtNum(percent,1)+'%' : '—';
+  document.getElementById('outSohRaw').textContent = (d && d.soh!==null)
+    ? `Valor original: ${fmtNum(d.soh,2)} (escala 1–${sohScale})`
+    : '';
+
+  // gauge
+  const gaugePercent = percent!==null ? Math.max(0,Math.min(100,percent)) : 0;
+  const arc = document.getElementById('gaugeArc');
+  const arcLength = Math.PI * 80; // semicircle length
+  arc.setAttribute('stroke-dasharray', arcLength);
+  arc.setAttribute('stroke-dashoffset', arcLength * (1 - gaugePercent/100));
+
+  const est = estadoBateria(percent);
+  const banner = document.getElementById('estadoBanner');
+  banner.className = 'estado-banner ' + est.color;
+  document.getElementById('estadoTitle').textContent = est.label;
+  document.getElementById('estadoMsg').textContent = percent!==null
+    ? est.msg + ' (SOH: '+fmtNum(percent,1)+'%)'
+    : 'Complete el diagnóstico para conocer el estado de la batería.';
+  arc.setAttribute('stroke', est.color==='good' ? '#0F9D74' : est.color==='warn' ? '#B7791F' : '#DC2626');
+
+  // cell balance (optional)
+  if(d && (d.cellAvg!==null || d.cellMax!==null || d.cellMin!==null)){
+    document.getElementById('cellBalanceSection').style.display='block';
+    document.getElementById('outCellAvg').textContent = d.cellAvg!==null ? fmtNum(d.cellAvg,3)+' V' : '—';
+    document.getElementById('outCellMax').textContent = d.cellMax!==null ? fmtNum(d.cellMax,3)+' V' : '—';
+    document.getElementById('outCellMin').textContent = d.cellMin!==null ? fmtNum(d.cellMin,3)+' V' : '—';
+    document.getElementById('outCellDelta').textContent = (d.cellMax!==null && d.cellMin!==null) ? fmtNum(d.cellMax-d.cellMin,3)+' V' : '—';
+  }else{
+    document.getElementById('cellBalanceSection').style.display='none';
+  }
+
+  // individual cell voltage table
+  const voltSection = document.getElementById('voltageTableSection');
+  if(d && d.voltageTable && d.voltageTable.length){
+    voltSection.style.display='block';
+    document.getElementById('voltTableCount').textContent = d.voltageTable.length;
+    const grid = document.getElementById('voltGrid');
+    grid.innerHTML = '';
+    d.voltageTable.forEach(row=>{
+      const cell = document.createElement('div');
+      cell.className = 'volt-cell';
+      if(row.cell === d.cellMaxNo) cell.classList.add('vmax');
+      if(row.cell === d.cellMinNo) cell.classList.add('vmin');
+      cell.innerHTML = `<span class="n">#${row.cell}</span><span class="val">${fmtNum(row.voltage,3)}V</span>`;
+      grid.appendChild(cell);
+    });
+  }else{
+    voltSection.style.display='none';
+  }
+
+  document.getElementById('reportCard').style.display='block';
+  document.getElementById('reportCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+genBtn.addEventListener('click', ()=>{
+  if(!parsedData) return;
+  isBlankReport = false;
+  renderReport(parsedData);
+});
+
+document.getElementById('blankBtn').addEventListener('click', ()=>{
+  isBlankReport = true;
+  renderReport(null);
+});
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const placa = document.getElementById('vehPlaca').value.trim().replace(/[^a-zA-Z0-9-]/g,'');
+  const filename = isBlankReport
+    ? 'Reporte_Bateria_en_blanco.pdf'
+    : `Reporte_Bateria_${placa || 'vehiculo'}.pdf`;
+  const el = document.getElementById('report');
+
+  // html2canvas can't resolve CSS custom properties (var(--x)) reliably and
+  // silently falls back to black for unresolved colors. We work around this
+  // by baking every element's *computed* (already-resolved) colors and fonts
+  // into literal inline styles right before capture, then restore afterward.
+  const COLOR_PROPS = ['color','backgroundColor','borderColor','borderTopColor','borderBottomColor','borderLeftColor','borderRightColor','fontFamily'];
+  const targets = [el, ...el.querySelectorAll('*')];
+  const originals = targets.map(node=>{
+    const cs = getComputedStyle(node);
+    const saved = {};
+    COLOR_PROPS.forEach(p=>{ saved[p] = node.style[p]; node.style[p] = cs[p]; });
+    return {node, saved};
+  });
+  // The root #report element itself has no background of its own (it inherits
+  // the dark panel color visually from its parent card, which isn't part of
+  // the capture), so after baking computed styles it ends up transparent.
+  // Force it explicitly so the exported page always has a solid dark backing,
+  // regardless of whether html2canvas's own backgroundColor option is honored.
+  el.style.backgroundColor = '#FFFFFF';
+
+  // html2canvas also has a well-known bug where, if the page is scrolled
+  // (which it is here, since generating the report scrolls it into view),
+  // it captures the wrong region and produces a blank/solid-color image.
+  // Scrolling to the top and forcing scrollX/scrollY to 0 works around it.
+  const prevScrollX = window.scrollX, prevScrollY = window.scrollY;
+  window.scrollTo(0,0);
+
+  const restore = ()=>{
+    originals.forEach(({node,saved})=>{
+      COLOR_PROPS.forEach(p=>{ node.style[p] = saved[p]; });
+    });
+    window.scrollTo(prevScrollX, prevScrollY);
+  };
+
+  setTimeout(()=>{
+    html2pdf().set({
+      margin: 10,
+      filename,
+      html2canvas: {scale:2, backgroundColor:'#FFFFFF', useCORS:true, scrollX:0, scrollY:0},
+      jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
+      pagebreak: {mode:['css','legacy'], before:['#voltageTableSection'], avoid:['.volt-cell','.stat-box','.kv','.estado-banner']}
+    }).from(el).save().then(restore).catch(restore);
+  }, 50);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  parsedData = null;
+  sohScale = 100;
+  isBlankReport = false;
+  fileInput.value = '';
+  fileStatus.classList.remove('show');
+  document.getElementById('scaleToggle').style.display='none';
+  document.getElementById('vehPlaca').value='';
+  document.getElementById('vehVin').value='';
+  document.getElementById('vehKm').value='';
+  document.getElementById('reportCard').style.display='none';
+  genBtn.disabled = true;
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+</script>
+</body>
+</html>
