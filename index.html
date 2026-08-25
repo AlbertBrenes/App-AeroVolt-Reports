@@ -145,54 +145,46 @@
     border-radius: 12px;
     padding: 4px;
   }
-  .report-header{text-align:center;padding:6px 0 18px;border-bottom:1px solid var(--rline);margin-bottom:20px;}
+  .report-header{text-align:center;padding:4px 0 12px;border-bottom:1px solid var(--rline);margin-bottom:14px;}
   .report-header h2{font-family:var(--display);font-size:19px;letter-spacing:.02em;margin:0;color:var(--rtext);}
   .section-label{
     font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--rgood);
-    font-weight:700;margin:0 0 12px;
+    font-weight:700;margin:0 0 8px;
   }
-  .kv-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+  .kv-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
   .kv{}
-  .kv .k{font-size:11px;color:var(--rtext-dim);margin-bottom:3px;}
+  .kv .k{font-size:11px;color:var(--rtext-dim);margin-bottom:2px;}
   .kv .v{font-family:var(--mono);font-size:14.5px;color:var(--rtext);}
-  hr.div{border:none;border-top:1px solid var(--rline);margin:20px 0;}
+  .kv-cap{font-size:10px;color:var(--rtext-dim);margin-top:2px;line-height:1.3;font-style:italic;}
+  .report-footer{margin-top:18px;text-align:center;font-size:10px;color:var(--rtext-dim);}
+  hr.div{border:none;border-top:1px solid var(--rline);margin:14px 0;}
 
   /* Gauge */
-  .gauge-wrap{display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap;margin-bottom:6px;}
-  .gauge{position:relative;width:200px;height:120px;}
-  .gauge svg{width:100%;height:100%;}
+  .gauge-wrap{display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap;margin-bottom:2px;}
+  .gauge{position:relative;width:160px;height:100px;}
+  .gauge canvas{width:100%;height:100%;display:block;}
   .gauge-value{
-    position:absolute;bottom:6px;left:0;right:0;text-align:center;
+    position:absolute;bottom:4px;left:0;right:0;text-align:center;
   }
-  .gauge-value .num{font-family:var(--display);font-size:32px;font-weight:700;color:var(--rtext);}
-  .gauge-value .lbl{font-size:11px;color:var(--rtext-dim);text-transform:uppercase;letter-spacing:.06em;}
-  .soc-stat{text-align:center;}
-  .soc-stat .num{font-family:var(--display);font-size:26px;font-weight:700;color:var(--rtext);}
-  .soc-stat .lbl{font-size:11px;color:var(--rtext-dim);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .gauge-value .num{font-family:var(--display);font-size:27px;font-weight:700;color:var(--rtext);}
+  .gauge-value .lbl{font-size:10px;color:var(--rtext-dim);text-transform:uppercase;letter-spacing:.06em;}
 
-  .info-note{
-    background:var(--rpanel);border:1px solid var(--rline);border-radius:10px;
-    padding:12px 16px;margin:14px 0 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;
-  }
-  .info-note .info-item{font-size:11.5px;color:var(--rtext-dim);line-height:1.5;}
-  .info-note .info-item strong{color:var(--rtext);}
-
-  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;}
-  .stat-box{background:var(--rpanel);border:1px solid var(--rline);border-radius:10px;padding:14px 16px;}
-  .stat-box .k{font-size:11px;color:var(--rtext-dim);margin-bottom:4px;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+  .stat-box{background:var(--rpanel);border:1px solid var(--rline);border-radius:10px;padding:10px 14px;}
+  .stat-box .k{font-size:11px;color:var(--rtext-dim);margin-bottom:3px;}
   .stat-box .v{font-family:var(--mono);font-size:16px;color:var(--rtext);}
 
   .estado-banner{
-    border-radius:12px;padding:18px;text-align:center;margin-top:8px;
+    border-radius:12px;padding:12px;text-align:center;margin-top:6px;
   }
   .estado-banner.good{background:#E7F7F1;border:1px solid #B7E8D4;}
   .estado-banner.warn{background:#FDF3E3;border:1px solid #F0D89B;}
   .estado-banner.bad{background:#FDEAEA;border:1px solid #F5BFBF;}
-  .estado-banner .title{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.02em;}
+  .estado-banner .title{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.02em;}
   .estado-banner.good .title{color:var(--rgood);}
   .estado-banner.warn .title{color:var(--rwarn);}
   .estado-banner.bad .title{color:var(--rbad);}
-  .estado-banner .msg{font-size:12.5px;color:var(--rtext-dim);margin-top:5px;}
+  .estado-banner .msg{font-size:12px;color:var(--rtext-dim);margin-top:4px;}
 
   .volt-grid{
     display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
@@ -212,7 +204,6 @@
   @media (max-width:520px){
     .store-grid,.veh-grid,.kv-row,.stat-grid{grid-template-columns:1fr 1fr;}
     .volt-grid{grid-template-columns:repeat(3,1fr);}
-    .info-note{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -290,45 +281,50 @@
         <div class="kv"><div class="k">Dirección</div><div class="v" id="outStoreAddress"></div></div>
       </div>
 
-      <p class="section-label">Información del vehículo</p>
-      <div class="kv-row">
-        <div class="kv"><div class="k">Placa / Nombre</div><div class="v" id="outPlaca"></div></div>
-        <div class="kv"><div class="k">VIN</div><div class="v" id="outVin"></div></div>
-        <div class="kv"><div class="k">Kilometraje</div><div class="v" id="outKm"></div></div>
-      </div>
-
       <hr class="div">
 
-      <p class="section-label">Diagnóstico de batería</p>
+      <p class="section-label">Estado general de la batería (SOH)</p>
       <div class="gauge-wrap">
         <div class="gauge">
-          <svg viewBox="0 0 200 120">
-            <path d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="#E3E7EE" stroke-width="14" stroke-linecap="round"/>
-            <path id="gaugeArc" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="#35E7B7" stroke-width="14" stroke-linecap="round"/>
-          </svg>
+          <canvas id="gaugeCanvas" width="320" height="200"></canvas>
           <div class="gauge-value"><div class="num" id="outSoh">—</div><div class="lbl">SOH</div></div>
         </div>
-        <div class="soc-stat"><div class="num" id="outSoc">—</div><div class="lbl">SOC</div></div>
       </div>
-      <p class="soh-raw" id="outSohRaw" style="text-align:center;color:var(--rtext-dim);font-size:11.5px;margin:0 0 6px;"></p>
-
-      <div class="info-note">
-        <div class="info-item"><strong>SOH</strong> — Estado de Salud: compara la capacidad actual de la batería con la que tenía siendo nueva. Un valor más alto indica una batería en mejor condición.</div>
-        <div class="info-item"><strong>SOC</strong> — Estado de Carga: indica cuánta energía tiene disponible la batería en este momento, como el indicador de combustible de un vehículo.</div>
-      </div>
-
-      <div class="kv-row" style="margin-top:6px;">
-        <div class="kv"><div class="k">Voltaje total</div><div class="v" id="outVoltage"></div></div>
-        <div class="kv"><div class="k">Fecha de prueba</div><div class="v" id="outDate"></div></div>
-        <div class="kv"><div class="k">Versión de software</div><div class="v" id="outSw"></div></div>
+      <p class="kv-cap" style="text-align:center;">Porcentaje de salud restante en comparación con su estado de fábrica.</p>
+      <p class="soh-raw" id="outSohRaw" style="text-align:center;color:var(--rtext-dim);font-size:11.5px;margin:0 0 12px;"></p>
+      <div class="estado-banner" id="estadoBanner">
+        <div class="title" id="estadoTitle">—</div>
+        <div class="msg" id="estadoMsg">—</div>
       </div>
 
       <hr class="div">
 
-      <p class="section-label">Capacidad de batería</p>
-      <div class="stat-grid">
-        <div class="stat-box"><div class="k">Capacidad inicial</div><div class="v" id="outCapInit"></div></div>
-        <div class="stat-box"><div class="k">Capacidad actual</div><div class="v" id="outCapCurr"></div></div>
+      <p class="section-label">Información del vehículo</p>
+      <div class="kv-row">
+        <div class="kv"><div class="k">Placa / Nombre</div><div class="v" id="outPlaca"></div><div class="kv-cap">Identificador del vehículo</div></div>
+        <div class="kv"><div class="k">VIN</div><div class="v" id="outVin"></div><div class="kv-cap">Registro único vehicular</div></div>
+        <div class="kv"><div class="k">Kilometraje</div><div class="v" id="outKm"></div><div class="kv-cap">Distancia recorrida</div></div>
+      </div>
+
+      <hr class="div">
+
+      <p class="section-label">Diagnóstico técnico de batería</p>
+      <div class="kv-row">
+        <div class="kv"><div class="k">SOC (Carga)</div><div class="v" id="outSoc"></div><div class="kv-cap">Energía disponible actualmente</div></div>
+        <div class="kv"><div class="k">Voltaje total</div><div class="v" id="outVoltage"></div><div class="kv-cap">Potencial eléctrico total del paquete</div></div>
+        <div class="kv"><div class="k">Fecha de prueba</div><div class="v" id="outDate"></div><div class="kv-cap">Momento en que se realizó el diagnóstico</div></div>
+      </div>
+      <div class="kv-row" style="grid-template-columns:1fr 1fr;margin-top:2px;">
+        <div class="kv"><div class="k">Capacidad inicial</div><div class="v" id="outCapInit"></div><div class="kv-cap">Capacidad original de fábrica</div></div>
+        <div class="kv"><div class="k">Capacidad actual</div><div class="v" id="outCapCurr"></div><div class="kv-cap">Capacidad real disponible hoy</div></div>
+      </div>
+
+      <hr class="div">
+
+      <p class="section-label">Detalles de hardware</p>
+      <div class="kv-row" style="grid-template-columns:1fr 1fr;">
+        <div class="kv"><div class="k">Número de serie</div><div class="v" id="outSerial"></div><div class="kv-cap">Identificador del equipo de diagnóstico</div></div>
+        <div class="kv"><div class="k">Versión de software</div><div class="v" id="outSw"></div><div class="kv-cap">Firmware del vehículo</div></div>
       </div>
 
       <div id="cellBalanceSection" style="display:none;">
@@ -344,21 +340,12 @@
 
       <div id="voltageTableSection" style="display:none;">
         <hr class="div">
-        <p class="section-label">Voltaje individual por celda (<span id="voltTableCount"></span>)</p>
+        <p class="section-label">Análisis de voltaje por celda</p>
+        <p class="kv-cap" id="voltSummaryLine" style="margin-bottom:12px;"></p>
         <div class="volt-grid" id="voltGrid"></div>
       </div>
 
-      <hr class="div">
-
-      <p class="section-label">Número de serie</p>
-      <div class="kv-row" style="margin-bottom:6px;">
-        <div class="kv" style="grid-column:1/4;"><div class="v" id="outSerial"></div></div>
-      </div>
-
-      <div class="estado-banner" id="estadoBanner">
-        <div class="title" id="estadoTitle">—</div>
-        <div class="msg" id="estadoMsg">—</div>
-      </div>
+      <p class="report-footer">Reporte generado automáticamente · los datos se procesan localmente en su navegador.</p>
     </div>
 
     <button class="btn btn-download" id="downloadBtn">Descargar Reporte en PDF</button>
@@ -382,6 +369,26 @@ function fmtNum(value, decimals=2){
   const parts = fixed.split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   return decimals>0 ? parts.join(',') : parts[0];
+}
+
+function drawGauge(percent, colorHex){
+  const canvas = document.getElementById('gaugeCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = 175, r = 130, lineWidth = 22;
+  ctx.clearRect(0,0,W,H);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = lineWidth;
+  // background track (full top semicircle)
+  ctx.strokeStyle = '#E3E7EE';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 2*Math.PI, false);
+  ctx.stroke();
+  // filled portion, proportional to percent
+  ctx.strokeStyle = colorHex;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, Math.PI + Math.PI*(percent/100), false);
+  ctx.stroke();
 }
 
 function estadoBateria(percent){
@@ -574,21 +581,20 @@ function renderReport(d){
     ? `Valor original: ${fmtNum(d.soh,2)} (escala 1–${sohScale})`
     : '';
 
-  // gauge
+  // gauge — drawn on a <canvas> instead of SVG, since html2canvas (used for the
+  // PDF export) doesn't reliably rasterize inline SVG arcs but handles canvas
+  // bitmaps natively.
   const gaugePercent = percent!==null ? Math.max(0,Math.min(100,percent)) : 0;
-  const arc = document.getElementById('gaugeArc');
-  const arcLength = Math.PI * 80; // semicircle length
-  arc.setAttribute('stroke-dasharray', arcLength);
-  arc.setAttribute('stroke-dashoffset', arcLength * (1 - gaugePercent/100));
-
   const est = estadoBateria(percent);
+  const gaugeColor = est.color==='good' ? '#0F9D74' : est.color==='warn' ? '#B7791F' : '#DC2626';
+  drawGauge(gaugePercent, gaugeColor);
+
   const banner = document.getElementById('estadoBanner');
   banner.className = 'estado-banner ' + est.color;
   document.getElementById('estadoTitle').textContent = est.label;
   document.getElementById('estadoMsg').textContent = percent!==null
     ? est.msg + ' (SOH: '+fmtNum(percent,1)+'%)'
     : 'Complete el diagnóstico para conocer el estado de la batería.';
-  arc.setAttribute('stroke', est.color==='good' ? '#0F9D74' : est.color==='warn' ? '#B7791F' : '#DC2626');
 
   // cell balance (optional)
   if(d && (d.cellAvg!==null || d.cellMax!==null || d.cellMin!==null)){
@@ -605,7 +611,11 @@ function renderReport(d){
   const voltSection = document.getElementById('voltageTableSection');
   if(d && d.voltageTable && d.voltageTable.length){
     voltSection.style.display='block';
-    document.getElementById('voltTableCount').textContent = d.voltageTable.length;
+    const maxRow = d.cellMax!==null ? `${fmtNum(d.cellMax,3)}V${d.cellMaxNo!==null ? ' (#'+d.cellMaxNo+')' : ''}` : '—';
+    const minRow = d.cellMin!==null ? `${fmtNum(d.cellMin,3)}V${d.cellMinNo!==null ? ' (#'+d.cellMinNo+')' : ''}` : '—';
+    const diffRow = (d.cellMax!==null && d.cellMin!==null) ? fmtNum(d.cellMax-d.cellMin,3)+'V' : '—';
+    document.getElementById('voltSummaryLine').textContent =
+      `Celdas: ${d.voltageTable.length} · Máx: ${maxRow} · Mín: ${minRow} · Diferencial: ${diffRow}`;
     const grid = document.getElementById('voltGrid');
     grid.innerHTML = '';
     d.voltageTable.forEach(row=>{
@@ -677,11 +687,11 @@ document.getElementById('downloadBtn').addEventListener('click', ()=>{
 
   setTimeout(()=>{
     html2pdf().set({
-      margin: 10,
+      margin: 8,
       filename,
       html2canvas: {scale:2, backgroundColor:'#FFFFFF', useCORS:true, scrollX:0, scrollY:0},
       jsPDF: {unit:'mm', format:'a4', orientation:'portrait'},
-      pagebreak: {mode:['css','legacy'], before:['#voltageTableSection'], avoid:['.volt-cell','.stat-box','.kv','.estado-banner']}
+      pagebreak: {mode:['css','legacy'], before:['#voltageTableSection'], avoid:['.volt-cell','.stat-box','.kv','.estado-banner','#cellBalanceSection','.stat-grid']}
     }).from(el).save().then(restore).catch(restore);
   }, 50);
 });
